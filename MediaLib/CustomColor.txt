@@ -1,0 +1,9 @@
+// Custom colors
+// -------------
+// To activate a color remove the "//" or add the "//" to deactivate the color.
+// Note: Only the first "valid" value will be used!
+
+// Colors
+// #FF9400D3
+// #FF7160e8
+#FF9069ff

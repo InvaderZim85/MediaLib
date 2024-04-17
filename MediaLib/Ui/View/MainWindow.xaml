@@ -1,0 +1,490 @@
+﻿<mah:MetroWindow
+    x:Class="MediaLib.Ui.View.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:local="clr-namespace:MediaLib.Ui.View"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModel="clr-namespace:MediaLib.Ui.ViewModel"
+    Title="{Binding WindowHeader}"
+    Width="900"
+    Height="450"
+    mah:DialogParticipation.Register="{Binding}"
+    Icon="../../MediaLibIcon.ico"
+    Loaded="MainWindow_OnLoaded"
+    ResizeMode="CanResizeWithGrip"
+    TitleCharacterCasing="Normal"
+    mc:Ignorable="d">
+
+    <Window.DataContext>
+        <viewModel:MainWindowViewModel />
+    </Window.DataContext>
+
+    <DockPanel LastChildFill="True">
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="File">
+                <MenuItem Click="MenuItemExit_Click" Header="Exit" />
+            </MenuItem>
+            <MenuItem Command="{Binding ImportCsvFileCommand}" Header="CSV import" />
+            <MenuItem Command="{Binding ExportHtmlCommand}" Header="HTML export" />
+        </Menu>
+
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem Content="{Binding Info}" />
+        </StatusBar>
+
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TabControl Grid.Column="0" SelectedIndex="{Binding SelectedTab}">
+                <TabItem Header="Movie">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBox
+                            Grid.Row="0"
+                            mah:TextBoxHelper.Watermark="Search..."
+                            Style="{StaticResource TextBoxFilter}"
+                            Text="{Binding FilterMovie, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <DataGrid
+                            Grid.Row="1"
+                            IsReadOnly="True"
+                            ItemsSource="{Binding Movies}"
+                            SelectedItem="{Binding SelectedMovie}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn
+                                    Width="*"
+                                    Binding="{Binding Title}"
+                                    Header="Title" />
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding MediumType, FallbackValue='/'}"
+                                    Header="Medium" />
+                                <DataGridTextColumn
+                                    Width="100"
+                                    Binding="{Binding Distributor, FallbackValue='/'}"
+                                    Header="Distributor" />
+                                <DataGridCheckBoxColumn
+                                    Width="50"
+                                    Binding="{Binding HasLink, Mode=OneWay}"
+                                    Header="Link" />
+                                <DataGridTextColumn
+                                    Width="125"
+                                    Binding="{Binding CreatedDateTime, StringFormat={}{0:yyyy-MM-yy HH:mm:ss}}"
+                                    Header="Created" />
+                                <DataGridTextColumn
+                                    Width="125"
+                                    Binding="{Binding ModifiedDateTime, StringFormat={}{0:yyyy-MM-yy HH:mm:ss}}"
+                                    Header="Modified" />
+                            </DataGrid.Columns>
+
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Command="{Binding AddNewEntryCommand}" Header="Add">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons
+                                                Width="16"
+                                                Height="16"
+                                                Foreground="Green"
+                                                Kind="FilePlusAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem
+                                        Command="{Binding EditEntryCommand}"
+                                        Header="Edit"
+                                        IsEnabled="{Binding FuncEditEnabled}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons
+                                                Width="16"
+                                                Height="16"
+                                                Foreground="Orange"
+                                                Kind="FileEditAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem
+                                        Command="{Binding DeleteEntryCommand}"
+                                        Header="Delete"
+                                        IsEnabled="{Binding FuncEditEnabled}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons
+                                                Width="16"
+                                                Height="16"
+                                                Foreground="Red"
+                                                Kind="FilePlusAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator />
+                                    <MenuItem
+                                        Command="{Binding OpenLinkCommand}"
+                                        Header="Open link..."
+                                        IsEnabled="{Binding FuncOpenLinkEnabled}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons Kind="LinkAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Command="{Binding OpenGoogleCommand}" Header="Search online...">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons Foreground="LightBlue" Kind="Globe" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                        </DataGrid>
+
+                        <Separator Grid.Row="2" />
+
+                        <Label
+                            Grid.Row="3"
+                            Content="{Binding InfoMovie}"
+                            Style="{StaticResource LabelDataInfo}" />
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Comic">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBox
+                            Grid.Row="0"
+                            mah:TextBoxHelper.Watermark="Search..."
+                            Style="{StaticResource TextBoxFilter}"
+                            Text="{Binding FilterComic, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <DataGrid
+                            Grid.Row="1"
+                            IsReadOnly="True"
+                            ItemsSource="{Binding Comics}"
+                            SelectedItem="{Binding SelectedComic}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn
+                                    Width="*"
+                                    Binding="{Binding Title}"
+                                    Header="Title" />
+                                <DataGridCheckBoxColumn
+                                    Width="50"
+                                    Binding="{Binding HasLink, Mode=OneWay}"
+                                    Header="Link" />
+                                <DataGridTextColumn
+                                    Width="125"
+                                    Binding="{Binding CreatedDateTime, StringFormat={}{0:yyyy-MM-yy HH:mm:ss}}"
+                                    Header="Created" />
+                                <DataGridTextColumn
+                                    Width="125"
+                                    Binding="{Binding ModifiedDateTime, StringFormat={}{0:yyyy-MM-yy HH:mm:ss}}"
+                                    Header="Modified" />
+                            </DataGrid.Columns>
+
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Command="{Binding AddNewEntryCommand}" Header="Add">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons
+                                                Width="16"
+                                                Height="16"
+                                                Foreground="Green"
+                                                Kind="FilePlusAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem
+                                        Command="{Binding EditEntryCommand}"
+                                        Header="Edit"
+                                        IsEnabled="{Binding FuncEditEnabled}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons
+                                                Width="16"
+                                                Height="16"
+                                                Foreground="Orange"
+                                                Kind="FileEditAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem
+                                        Command="{Binding DeleteEntryCommand}"
+                                        Header="Delete"
+                                        IsEnabled="{Binding FuncEditEnabled}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons
+                                                Width="16"
+                                                Height="16"
+                                                Foreground="Red"
+                                                Kind="FilePlusAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator />
+                                    <MenuItem
+                                        Command="{Binding OpenLinkCommand}"
+                                        Header="Open link..."
+                                        IsEnabled="{Binding FuncOpenLinkEnabled}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons Kind="LinkAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Command="{Binding OpenGoogleCommand}" Header="Search online...">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons Foreground="LightBlue" Kind="Globe" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                        </DataGrid>
+
+                        <Separator Grid.Row="2" />
+
+                        <Label
+                            Grid.Row="3"
+                            Content="{Binding InfoComic}"
+                            Style="{StaticResource LabelDataInfo}" />
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Books">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBox
+                            Grid.Row="0"
+                            mah:TextBoxHelper.Watermark="Search..."
+                            Style="{StaticResource TextBoxFilter}"
+                            Text="{Binding FilterBook, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <DataGrid
+                            Grid.Row="1"
+                            IsReadOnly="True"
+                            ItemsSource="{Binding Books}"
+                            SelectedItem="{Binding SelectedBook}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn
+                                    Width="*"
+                                    Binding="{Binding Title}"
+                                    Header="Title" />
+                                <DataGridCheckBoxColumn
+                                    Width="50"
+                                    Binding="{Binding HasLink, Mode=OneWay}"
+                                    Header="Link" />
+                                <DataGridTextColumn
+                                    Width="125"
+                                    Binding="{Binding CreatedDateTime, StringFormat={}{0:yyyy-MM-yy HH:mm:ss}}"
+                                    Header="Created" />
+                                <DataGridTextColumn
+                                    Width="125"
+                                    Binding="{Binding ModifiedDateTime, StringFormat={}{0:yyyy-MM-yy HH:mm:ss}}"
+                                    Header="Modified" />
+                            </DataGrid.Columns>
+
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Command="{Binding AddNewEntryCommand}" Header="Add">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons
+                                                Width="16"
+                                                Height="16"
+                                                Foreground="Green"
+                                                Kind="FilePlusAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem
+                                        Command="{Binding EditEntryCommand}"
+                                        Header="Edit"
+                                        IsEnabled="{Binding FuncEditEnabled}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons
+                                                Width="16"
+                                                Height="16"
+                                                Foreground="Orange"
+                                                Kind="FileEditAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem
+                                        Command="{Binding DeleteEntryCommand}"
+                                        Header="Delete"
+                                        IsEnabled="{Binding FuncEditEnabled}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons
+                                                Width="16"
+                                                Height="16"
+                                                Foreground="Red"
+                                                Kind="FilePlusAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator />
+                                    <MenuItem
+                                        Command="{Binding OpenLinkCommand}"
+                                        Header="Open link..."
+                                        IsEnabled="{Binding FuncOpenLinkEnabled}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons Kind="LinkAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Command="{Binding OpenGoogleCommand}" Header="Search online...">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons Foreground="LightBlue" Kind="Globe" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                        </DataGrid>
+
+                        <Separator Grid.Row="2" />
+
+                        <Label
+                            Grid.Row="3"
+                            Content="{Binding InfoBook}"
+                            Style="{StaticResource LabelDataInfo}" />
+                    </Grid>
+                </TabItem>
+                <TabItem Header="Music">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBox
+                            Grid.Row="0"
+                            mah:TextBoxHelper.Watermark="Search..."
+                            Style="{StaticResource TextBoxFilter}"
+                            Text="{Binding FilterMusic, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <DataGrid
+                            Grid.Row="1"
+                            IsReadOnly="True"
+                            ItemsSource="{Binding Music}"
+                            SelectedItem="{Binding SelectedMusic}">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn
+                                    Width="*"
+                                    Binding="{Binding Title}"
+                                    Header="Title" />
+                                <DataGridCheckBoxColumn
+                                    Width="50"
+                                    Binding="{Binding HasLink, Mode=OneWay}"
+                                    Header="Link" />
+                                <DataGridTextColumn
+                                    Width="125"
+                                    Binding="{Binding CreatedDateTime, StringFormat={}{0:yyyy-MM-yy HH:mm:ss}}"
+                                    Header="Created" />
+                                <DataGridTextColumn
+                                    Width="125"
+                                    Binding="{Binding ModifiedDateTime, StringFormat={}{0:yyyy-MM-yy HH:mm:ss}}"
+                                    Header="Modified" />
+                            </DataGrid.Columns>
+
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Command="{Binding AddNewEntryCommand}" Header="Add">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons
+                                                Width="16"
+                                                Height="16"
+                                                Foreground="Green"
+                                                Kind="FilePlusAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem
+                                        Command="{Binding EditEntryCommand}"
+                                        Header="Edit"
+                                        IsEnabled="{Binding FuncEditEnabled}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons
+                                                Width="16"
+                                                Height="16"
+                                                Foreground="Orange"
+                                                Kind="FileEditAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem
+                                        Command="{Binding DeleteEntryCommand}"
+                                        Header="Delete"
+                                        IsEnabled="{Binding FuncEditEnabled}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons
+                                                Width="16"
+                                                Height="16"
+                                                Foreground="Red"
+                                                Kind="FilePlusAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <Separator />
+                                    <MenuItem
+                                        Command="{Binding OpenLinkCommand}"
+                                        Header="Open link..."
+                                        IsEnabled="{Binding FuncOpenLinkEnabled}">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons Kind="LinkAlt" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem Command="{Binding OpenGoogleCommand}" Header="Search online...">
+                                        <MenuItem.Icon>
+                                            <iconPacks:PackIconUnicons Foreground="LightBlue" Kind="Globe" />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                        </DataGrid>
+
+                        <Separator Grid.Row="2" />
+
+                        <Label
+                            Grid.Row="3"
+                            Content="{Binding InfoMusic}"
+                            Style="{StaticResource LabelDataInfo}" />
+                    </Grid>
+                </TabItem>
+            </TabControl>
+
+            <StackPanel
+                Grid.Row="0"
+                Grid.Column="1"
+                Margin="3,42,3,3"
+                Orientation="Vertical">
+                <Button Command="{Binding AddNewEntryCommand}" ToolTip="Adds a new entry">
+                    <iconPacks:PackIconUnicons
+                        Width="16"
+                        Height="16"
+                        Foreground="Green"
+                        Kind="FilePlusAlt" />
+                </Button>
+                <Button
+                    Command="{Binding EditEntryCommand}"
+                    IsEnabled="{Binding FuncEditEnabled}"
+                    ToolTip="Edits the selected entry">
+                    <iconPacks:PackIconUnicons
+                        Width="16"
+                        Height="16"
+                        Foreground="Orange"
+                        Kind="FileEditAlt" />
+                </Button>
+                <Button
+                    Command="{Binding DeleteEntryCommand}"
+                    IsEnabled="{Binding FuncEditEnabled}"
+                    ToolTip="Deletes the selected entry">
+                    <iconPacks:PackIconUnicons
+                        Width="16"
+                        Height="16"
+                        Foreground="Red"
+                        Kind="FilePlusAlt" />
+                </Button>
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</mah:MetroWindow>

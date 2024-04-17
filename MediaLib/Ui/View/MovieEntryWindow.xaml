@@ -1,0 +1,131 @@
+﻿<mah:MetroWindow
+    x:Class="MediaLib.Ui.View.MovieEntryWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:MediaLib.Ui.View"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModel="clr-namespace:MediaLib.Ui.ViewModel"
+    Title="Movie"
+    Width="480"
+    Height="280"
+    mah:DialogParticipation.Register="{Binding}"
+    Loaded="MovieEntryWindow_OnLoaded"
+    TitleCharacterCasing="Normal"
+    WindowStartupLocation="CenterOwner"
+    mc:Ignorable="d">
+
+    <Window.DataContext>
+        <viewModel:MovieEntryWindowViewModel />
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Label
+            Grid.Row="0"
+            Grid.Column="0"
+            Content="Title:" />
+        <TextBox
+            Grid.Row="0"
+            Grid.Column="1"
+            Text="{Binding Movie.Title}" />
+
+        <Label
+            Grid.Row="1"
+            Grid.Column="0"
+            Content="Medium:" />
+        <ComboBox
+            Grid.Row="1"
+            Grid.Column="1"
+            ItemsSource="{Binding MediumTypes}"
+            SelectedItem="{Binding SelectedMediumType}" />
+
+        <Label
+            Grid.Row="2"
+            Grid.Column="0"
+            Content="Distributor:" />
+        <ComboBox
+            Grid.Row="2"
+            Grid.Column="1"
+            ItemsSource="{Binding Distributors}"
+            SelectedItem="{Binding SelectedDistributor}" />
+
+        <Label
+            Grid.Row="3"
+            Grid.Column="0"
+            Content="Link:" />
+        <TextBox
+            Grid.Row="3"
+            Grid.Column="1"
+            Text="{Binding Movie.Link}" />
+
+        <Label
+            Grid.Row="4"
+            Grid.Column="0"
+            Content="Created:" />
+        <Label
+            Grid.Row="4"
+            Grid.Column="1"
+            Content="{Binding Movie.CreatedDateTime}"
+            ContentStringFormat="yyyy-MM-dd HH:mm:ss"
+            Foreground="DarkGray"
+            Style="{StaticResource LabelData}" />
+
+        <Label
+            Grid.Row="5"
+            Grid.Column="0"
+            Content="Modified:" />
+        <Label
+            Grid.Row="5"
+            Grid.Column="1"
+            Content="{Binding Movie.ModifiedDateTime}"
+            ContentStringFormat="yyyy-MM-dd HH:mm:ss"
+            Foreground="DarkGray"
+            Style="{StaticResource LabelData}" />
+
+        <Separator
+            Grid.Row="6"
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            VerticalAlignment="Bottom" />
+
+        <CheckBox
+            Grid.Row="7"
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            HorizontalAlignment="Left"
+            Content="Create another one"
+            IsChecked="{Binding CreateNewEntry}" />
+
+        <StackPanel
+            Grid.Row="7"
+            Grid.Column="1"
+            FlowDirection="RightToLeft"
+            Orientation="Horizontal">
+            <Button
+                Width="60"
+                Command="{Binding CloseWindowCommand}"
+                Content="Close" />
+            <Button
+                Width="60"
+                Command="{Binding SaveEntryCommand}"
+                Content="Save" />
+        </StackPanel>
+    </Grid>
+</mah:MetroWindow>

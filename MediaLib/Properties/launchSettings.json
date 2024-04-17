@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MediaLib": {
+      "commandName": "Project",
+      "commandLineArgs": "verbose"
+    }
+  }
+}

@@ -8,7 +8,9 @@ using MediaLib.Model.Database;
 using MediaLib.Ui.View;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Reflection;
+using MediaLib.Model.Internal;
 
 namespace MediaLib.Ui.ViewModel;
 
@@ -293,7 +295,8 @@ internal partial class MainWindowViewModel : ViewModelBase
     {
         return list
             .Where(w => string.IsNullOrWhiteSpace(filter) ||
-                        w.Title.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                        w.Title.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                        w.Keywords.Contains(filter, StringComparison.OrdinalIgnoreCase))
             .OrderBy(o => o.Title)
             .ToObservableCollection();
     }
@@ -308,6 +311,7 @@ internal partial class MainWindowViewModel : ViewModelBase
     {
         return list.Where(w => string.IsNullOrWhiteSpace(filter) ||
                                w.Title.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                               w.Keywords.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
                                w.MediumType.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
                                w.Distributor.Contains(filter, StringComparison.OrdinalIgnoreCase))
             .OrderBy(o => o.Title)
@@ -556,18 +560,66 @@ internal partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     /// <returns>The awaitable task</returns>
     [RelayCommand]
-    public async Task ExportHtmlAsync()
+    private async Task ExportHtmlAsync()
     {
         var dialog = new OpenFolderDialog();
 
         if (dialog.ShowDialog() != true) 
             return;
 
-        var controller = await ShowProgressAsync("Please wait", "Please wait while importing the data...");
+        var controller = await ShowProgressAsync("Please wait", "Please wait while exporting the data...");
 
         try
         {
             await _manager.ExportHtmlAsync(dialog.FolderName);
+
+            await ShowMessageAsync("HTML export", "Data successfully exported.");
+        }
+        catch (Exception ex)
+        {
+            await ShowErrorAsync(ex, ErrorType.Save);
+        }
+        finally
+        {
+            await controller.CloseAsync();
+        }
+    }
+
+    /// <summary>
+    /// Exports the current content as HTML and uploads it to the desired FTP server
+    /// </summary>
+    /// <returns>The awaitable task</returns>
+    [RelayCommand]
+    private async Task ExportHtmlFtpAsync()
+    {
+        
+        var controller = await ShowProgressAsync("Please wait", "Please wait while exporting / uploading the data...");
+
+        try
+        {
+            // Export the file (into a temp. folder)
+            var tempDir = Path.GetTempPath();
+            // Create the dir if it not exists
+            Directory.CreateDirectory(tempDir);
+            // Create the file
+            var path = await _manager.ExportHtmlAsync(tempDir);
+            // Upload the file
+            var settings = new FtpSettings
+            {
+                Server = await SettingsManager.LoadValueAsync(SettingsKey.FtpServer, string.Empty),
+                Username = await SettingsManager.LoadValueAsync(SettingsKey.FtpUser, string.Empty),
+                Password = await SettingsManager.LoadValueAsync(SettingsKey.FtpPassword, string.Empty)
+            };
+
+            if (string.IsNullOrEmpty(settings.Server))
+            {
+                await ShowMessageAsync("FTP Upload",
+                    "The ftp settings are missing! Insert the needed settings (File > FTP Settings) and try again!");
+                return;
+            }
+
+            // Upload the file
+            await FtpManager.UploadFileAsync(path, settings);
         }
         catch (Exception ex)
         {
@@ -623,6 +675,20 @@ internal partial class MainWindowViewModel : ViewModelBase
             return;
 
         Helper.SearchGoogle(title);
+    }
+
+    /// <summary>
+    /// Shows the FTP settings dialog
+    /// </summary>
+    [RelayCommand]
+    private void ShowFtpSettings()
+    {
+        var ftpDialog = new FtpSettingsWindow()
+        {
+            Owner = GetOwnerWindow()
+        };
+
+        ftpDialog.ShowDialog();
     }
 
     /// <summary>

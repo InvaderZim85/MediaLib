@@ -28,6 +28,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -78,9 +79,19 @@
         <Label
             Grid.Row="4"
             Grid.Column="0"
+            Content="Keywords:" />
+
+        <TextBox
+            Grid.Row="4"
+            Grid.Column="1"
+            Text="{Binding Movie.Keywords}" />
+
+        <Label
+            Grid.Row="5"
+            Grid.Column="0"
             Content="Created:" />
         <Label
-            Grid.Row="4"
+            Grid.Row="5"
             Grid.Column="1"
             Content="{Binding Movie.CreatedDateTime}"
             ContentStringFormat="yyyy-MM-dd HH:mm:ss"
@@ -88,11 +99,11 @@
             Style="{StaticResource LabelData}" />
 
         <Label
-            Grid.Row="5"
+            Grid.Row="6"
             Grid.Column="0"
             Content="Modified:" />
         <Label
-            Grid.Row="5"
+            Grid.Row="6"
             Grid.Column="1"
             Content="{Binding Movie.ModifiedDateTime}"
             ContentStringFormat="yyyy-MM-dd HH:mm:ss"
@@ -100,13 +111,13 @@
             Style="{StaticResource LabelData}" />
 
         <Separator
-            Grid.Row="6"
+            Grid.Row="7"
             Grid.Column="0"
             Grid.ColumnSpan="2"
             VerticalAlignment="Bottom" />
 
         <CheckBox
-            Grid.Row="7"
+            Grid.Row="8"
             Grid.Column="0"
             Grid.ColumnSpan="2"
             HorizontalAlignment="Left"
@@ -114,7 +125,7 @@
             IsChecked="{Binding CreateNewEntry}" />
 
         <StackPanel
-            Grid.Row="7"
+            Grid.Row="8"
             Grid.Column="1"
             FlowDirection="RightToLeft"
             Orientation="Horizontal">

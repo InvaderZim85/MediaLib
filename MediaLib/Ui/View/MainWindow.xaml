@@ -9,13 +9,14 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:viewModel="clr-namespace:MediaLib.Ui.ViewModel"
     Title="{Binding WindowHeader}"
-    Width="900"
-    Height="450"
+    Width="1024"
+    Height="768"
     mah:DialogParticipation.Register="{Binding}"
     Icon="../../MediaLibIcon.ico"
     Loaded="MainWindow_OnLoaded"
     ResizeMode="CanResizeWithGrip"
     TitleCharacterCasing="Normal"
+    WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
 
     <Window.DataContext>
@@ -25,10 +26,15 @@
     <DockPanel LastChildFill="True">
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
+                <MenuItem Command="{Binding ShowFtpSettingsCommand}" Header="FTP settings" />
+                <Separator />
                 <MenuItem Click="MenuItemExit_Click" Header="Exit" />
             </MenuItem>
             <MenuItem Command="{Binding ImportCsvFileCommand}" Header="CSV import" />
-            <MenuItem Command="{Binding ExportHtmlCommand}" Header="HTML export" />
+            <MenuItem Header="Export">
+                <MenuItem Command="{Binding ExportHtmlCommand}" Header="HTML export (local)" />
+                <MenuItem Command="{Binding ExportHtmlFtpCommand}" Header="HTML export (FTP)" />
+            </MenuItem>
         </Menu>
 
         <StatusBar DockPanel.Dock="Bottom">
@@ -67,6 +73,10 @@
                                     Width="*"
                                     Binding="{Binding Title}"
                                     Header="Title" />
+                                <DataGridTextColumn
+                                    Width="*"
+                                    Binding="{Binding Keywords}"
+                                    Header="Keywords" />
                                 <DataGridTextColumn
                                     Width="100"
                                     Binding="{Binding MediumType, FallbackValue='/'}"
@@ -175,6 +185,10 @@
                                     Width="*"
                                     Binding="{Binding Title}"
                                     Header="Title" />
+                                <DataGridTextColumn
+                                    Width="*"
+                                    Binding="{Binding Keywords}"
+                                    Header="Keywords" />
                                 <DataGridCheckBoxColumn
                                     Width="50"
                                     Binding="{Binding HasLink, Mode=OneWay}"
@@ -275,6 +289,10 @@
                                     Width="*"
                                     Binding="{Binding Title}"
                                     Header="Title" />
+                                <DataGridTextColumn
+                                    Width="*"
+                                    Binding="{Binding Keywords}"
+                                    Header="Keywords" />
                                 <DataGridCheckBoxColumn
                                     Width="50"
                                     Binding="{Binding HasLink, Mode=OneWay}"
@@ -375,6 +393,10 @@
                                     Width="*"
                                     Binding="{Binding Title}"
                                     Header="Title" />
+                                <DataGridTextColumn
+                                    Width="*"
+                                    Binding="{Binding Keywords}"
+                                    Header="Keywords" />
                                 <DataGridCheckBoxColumn
                                     Width="50"
                                     Binding="{Binding HasLink, Mode=OneWay}"

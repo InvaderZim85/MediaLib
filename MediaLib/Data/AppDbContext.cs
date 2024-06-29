@@ -9,7 +9,8 @@ namespace MediaLib.Data;
 /// <summary>
 /// Provides the functions for the interaction with the database
 /// </summary>
-internal sealed class AppDbContext : DbContext
+/// <param name="disableTracking"><see langword="true"/> to disable the tracking, otherwise <see langword="false"/></param>
+internal sealed class AppDbContext(bool disableTracking = false) : DbContext
 {
     /// <summary>
     /// Gets or sets the distributor
@@ -43,6 +44,16 @@ internal sealed class AppDbContext : DbContext
     /// </summary>
     public DbSet<MusicDbModel> Music => Set<MusicDbModel>();
 
+    /// <summary>
+    /// Gets or sets the keywords
+    /// </summary>
+    public DbSet<KeywordDbModel> Keywords => Set<KeywordDbModel>();
+
+    /// <summary>
+    /// Gets or sets the settings
+    /// </summary>
+    public DbSet<SettingsDbModel> Settings => Set<SettingsDbModel>();
+
     /// <inheritdoc />
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -58,5 +69,8 @@ internal sealed class AppDbContext : DbContext
 
         if (Helper.VerboseLog)
             optionsBuilder.EnableDetailedErrors().EnableSensitiveDataLogging().LogTo(Log.Verbose);
+
+        if (disableTracking)
+            optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
     }
 }

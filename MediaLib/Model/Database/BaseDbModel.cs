@@ -33,4 +33,10 @@ public class BaseDbModel : CreatedModifiedDateTime
     [NotMapped]
     [IgnoreProperty]
     public bool HasLink => !string.IsNullOrWhiteSpace(Link);
+
+    /// <summary>
+    /// Gets or sets the keywords
+    /// </summary>
+    [NotMapped]
+    public string Keywords { get; set; } = string.Empty;
 }

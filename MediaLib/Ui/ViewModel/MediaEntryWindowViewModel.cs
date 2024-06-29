@@ -59,6 +59,12 @@ internal partial class MediaEntryWindowViewModel : ViewModelBase
     private string _link = string.Empty;
 
     /// <summary>
+    /// Gets or sets the keywords
+    /// </summary>
+    [ObservableProperty]
+    private string _keywords = string.Empty;
+
+    /// <summary>
     /// Gets or sets the creation date time
     /// </summary>
     [ObservableProperty]
@@ -108,36 +114,22 @@ internal partial class MediaEntryWindowViewModel : ViewModelBase
     /// </summary>
     private void SetData()
     {
-        switch (_mediaType)
+        if (_mediaEntry is BaseDbModel baseModel)
         {
-            case MediaType.Comic when _mediaEntry is ComicDbModel comic:
-                Title = comic.Title;
-                Link = comic.Link;
-                CreationDateTime = comic.CreatedDateTime;
-                ModifiedDateTime = comic.ModifiedDateTime;
-                break;
-            case MediaType.Comic when _mediaEntry == null:
-                _mediaEntry = new ComicDbModel();
-                break;
-            case MediaType.Book when _mediaEntry is BookDbModel book:
-                Title = book.Title;
-                Link = book.Link;
-                CreationDateTime = book.CreatedDateTime;
-                ModifiedDateTime = book.ModifiedDateTime;
-                break;
-            case MediaType.Book when _mediaEntry == null:
-                _mediaEntry = new BookDbModel();
-                break;
-            case MediaType.Music when _mediaEntry is MusicDbModel music:
-                Title = music.Title;
-                Link = music.Link;
-                CreationDateTime = music.CreatedDateTime;
-                ModifiedDateTime = music.ModifiedDateTime;
-                break;
-            case MediaType.Music when _mediaEntry == null:
-                _mediaEntry = new MusicDbModel();
-                break;
+            Title = baseModel.Title;
+            Link = baseModel.Link;
+            Keywords = baseModel.Keywords;
+            CreationDateTime = baseModel.CreatedDateTime;
+            ModifiedDateTime = baseModel.ModifiedDateTime;
         }
+
+        _mediaEntry = _mediaType switch
+        {
+            MediaType.Comic when _mediaEntry == null => new ComicDbModel(),
+            MediaType.Book when _mediaEntry == null => new BookDbModel(),
+            MediaType.Music when _mediaEntry == null => new MusicDbModel(),
+            _ => _mediaEntry
+        };
     }
 
     /// <summary>
@@ -145,21 +137,12 @@ internal partial class MediaEntryWindowViewModel : ViewModelBase
     /// </summary>
     private void GetTitle()
     {
-        switch (_mediaType)
-        {
-            case MediaType.Comic when _mediaEntry is ComicDbModel comic:
-                comic.Title = Title;
-                comic.Link = Link;
-                break;
-            case MediaType.Book when _mediaEntry is BookDbModel book:
-                book.Title = Title;
-                book.Link = Link;
-                break;
-            case MediaType.Music when _mediaEntry is MusicDbModel music:
-                music.Title = Title;
-                music.Link = Link;
-                break;
-        }
+        if (_mediaEntry is not BaseDbModel baseModel) 
+            return;
+
+        baseModel.Title = Title;
+        baseModel.Link = Link;
+        baseModel.Keywords = Keywords;
     }
 
     /// <summary>

@@ -89,6 +89,36 @@ public sealed class MediaManager
 
         // Music
         Music = await _context.Music.ToListAsync();
+
+        // Load the keywords
+        var keywords = await _context.Keywords.AsNoTracking().ToListAsync();
+
+        // Add the keywords to the entries
+        var objectIds = keywords.Select(s => s.ObjectId).Distinct().ToList();
+
+        foreach (var objectId in objectIds)
+        {
+            var types = keywords.Where(w => w.ObjectId == objectId).Select(s => s.KeywordTypeId).Distinct().ToList();
+
+            foreach (var type in types)
+            {
+                var tmpKeywords = keywords.Where(w => w.KeywordTypeId == type && w.ObjectId == objectId).ToList();
+
+                object? entry = (KeywordType)type switch
+                {
+                    KeywordType.Book => Books.FirstOrDefault(f => f.Id == objectId),
+                    KeywordType.Comic => Comics.FirstOrDefault(f => f.Id == objectId),
+                    KeywordType.Movie => Movies.FirstOrDefault(f => f.Id == objectId),
+                    KeywordType.Music => Music.FirstOrDefault(f => f.Id == objectId),
+                    _ => null
+                };
+
+                if (entry is not BaseDbModel model)
+                    continue;
+
+                model.Keywords = string.Join(", ", tmpKeywords.Select(s => s.Value));
+            }
+        }
     }
 
     #region Save / Delete
@@ -104,13 +134,13 @@ public sealed class MediaManager
     {
         return type switch
         {
-            MediaType.Comic when media is ComicDbModel comic => SaveEntryAsync(_context.Comics, comic,
+            MediaType.Comic when media is ComicDbModel comic => SaveEntryAsync(type, _context.Comics, comic,
                 entry => entry.Id == 0, Comics),
-            MediaType.Book when media is BookDbModel book => SaveEntryAsync(_context.Books, book,
+            MediaType.Book when media is BookDbModel book => SaveEntryAsync(type, _context.Books, book,
                 entry => entry.Id == 0, Books),
-            MediaType.Movie when media is MovieDbModel movie => SaveEntryAsync(_context.Movies, movie,
+            MediaType.Movie when media is MovieDbModel movie => SaveEntryAsync(type, _context.Movies, movie,
                 entry => entry.Id == 0, Movies),
-            MediaType.Music when media is MusicDbModel music => SaveEntryAsync(_context.Music, music,
+            MediaType.Music when media is MusicDbModel music => SaveEntryAsync(type, _context.Music, music,
                 entry => entry.Id == 0, Music),
             _ => throw new NotSupportedException($"The specified type '{type}' is not supported.")
         };
@@ -127,13 +157,13 @@ public sealed class MediaManager
     {
         return type switch
         {
-            MediaType.Comic when media is ComicDbModel comic => DeleteEntryAsync(_context.Comics, comic,
+            MediaType.Comic when media is ComicDbModel comic => DeleteEntryAsync(type, _context.Comics, comic,
                 entry => entry.Id == 0, Comics),
-            MediaType.Book when media is BookDbModel book => DeleteEntryAsync(_context.Books, book,
+            MediaType.Book when media is BookDbModel book => DeleteEntryAsync(type, _context.Books, book,
                 entry => entry.Id == 0, Books),
-            MediaType.Movie when media is MovieDbModel movie => DeleteEntryAsync(_context.Movies, movie,
+            MediaType.Movie when media is MovieDbModel movie => DeleteEntryAsync(type, _context.Movies, movie,
                 entry => entry.Id == 0, Movies),
-            MediaType.Music when media is MusicDbModel music => DeleteEntryAsync(_context.Music, music,
+            MediaType.Music when media is MusicDbModel music => DeleteEntryAsync(type, _context.Music, music,
                 entry => entry.Id == 0, Music),
             _ => throw new NotSupportedException($"The specified type '{type}' is not supported.")
         };
@@ -143,12 +173,13 @@ public sealed class MediaManager
     /// Saves an entry
     /// </summary>
     /// <typeparam name="T">The type of the entry</typeparam>
+    /// <param name="type">The media type</param>
     /// <param name="dbSet">The data set</param>
     /// <param name="entry">The entry which should be saved</param>
     /// <param name="checkIsNew">The function to check if the entry is new or not</param>
     /// <param name="dataList">The data list</param>
     /// <returns>The awaitable task</returns>
-    private async Task SaveEntryAsync<T>(DbSet<T> dbSet, T entry, Func<T, bool> checkIsNew, List<T> dataList) where T : class
+    private async Task SaveEntryAsync<T>(MediaType type, DbSet<T> dbSet, T entry, Func<T, bool> checkIsNew, List<T> dataList) where T : class
     {
         if (checkIsNew(entry))
         {
@@ -158,15 +189,60 @@ public sealed class MediaManager
         }
         else
         {
-            if (_context.Entry(entry).State == EntityState.Unchanged)
-                return;
-
-            // Set the change date
-            if (entry is CreatedModifiedDateTime tmpEntry)
+            if (_context.Entry(entry).State != EntityState.Unchanged && entry is CreatedModifiedDateTime tmpEntry)
                 tmpEntry.ModifiedDateTime = DateTime.Now;
         }
 
         // Save the changes
+        await _context.SaveChangesAsync();
+
+        if (entry is BaseDbModel model)
+            await SaveKeywordsAsync(type, model);
+    }
+
+    /// <summary>
+    /// Saves the keywords
+    /// </summary>
+    /// <param name="mediaType">The desired media type</param>
+    /// <param name="model">The model with the data</param>
+    /// <returns>The awaitable task</returns>
+    private async Task SaveKeywordsAsync(MediaType mediaType, BaseDbModel model)
+    {
+        var keywordType = mediaType.ToKeywordType();
+
+        // Split the entries
+        var keywordList = model.Keywords.Split(',', StringSplitOptions.TrimEntries);
+
+        // Load all keywords for the specified entry
+        var dbKeywords = _context.Keywords
+            .Where(w => w.KeywordTypeId == (int)keywordType && w.ObjectId == model.Id)
+            .ToList();
+
+        if (keywordList.Length == 0 && dbKeywords.Count == 0)
+            return;
+
+        // Add the keywords
+        foreach (var keyword in keywordList)
+        {
+            // Check if the keyword exists in the database
+            if (dbKeywords.Select(s => s.Value).Contains(keyword))
+                continue; // Value already exists
+
+            // Create a new entry
+            await _context.Keywords.AddAsync(new KeywordDbModel
+            {
+                KeywordTypeId = (int)keywordType,
+                ObjectId = model.Id,
+                Value = keyword
+            });
+        }
+
+        // Now remove the db keywords which are not in the list
+        foreach (var dbKeyword in dbKeywords.Where(dbKeyword => !keywordList.Contains(dbKeyword.Value)))
+        {
+            _context.Keywords.Remove(dbKeyword);
+        }
+
         await _context.SaveChangesAsync();
     }
 
@@ -174,12 +250,13 @@ public sealed class MediaManager
     /// Deletes an entry
     /// </summary>
     /// <typeparam name="T">The type of the entry</typeparam>
+    /// <param name="mediaType">The media type</param>
     /// <param name="dbSet">The data set</param>
     /// <param name="entry">The entry which should be deleted</param>
     /// <param name="checkIsNew">The function to check if the entry is new or not</param>
     /// <param name="dataList">The data list</param>
     /// <returns>The awaitable task</returns>
-    private async Task DeleteEntryAsync<T>(DbSet<T> dbSet, T entry, Func<T, bool> checkIsNew, List<T> dataList) where T : class
+    private async Task DeleteEntryAsync<T>(MediaType mediaType, DbSet<T> dbSet, T entry, Func<T, bool> checkIsNew, List<T> dataList) where T : class
     {
         if (!checkIsNew(entry))
         {
@@ -189,6 +266,17 @@ public sealed class MediaManager
         }
 
         dataList.Remove(entry);
+
+        // Delete the keywords
+        var keywords = await _context.Keywords.Where(w => w.KeywordTypeId == (int)mediaType.ToKeywordType())
+            .ToListAsync();
+
+        foreach (var keyword in keywords)
+        {
+            _context.Keywords.Remove(keyword);
+        }
+
+        await _context.SaveChangesAsync();
     }
     #endregion
 
@@ -333,8 +421,8 @@ public sealed class MediaManager
     /// Exports the current content as HTML
     /// </summary>
     /// <param name="folder">The target directory</param>
-    /// <returns>The awaitable task</returns>
-    public async Task ExportHtmlAsync(string folder)
+    /// <returns>The path of the created file</returns>
+    public async Task<string> ExportHtmlAsync(string folder)
     {
         var path = Path.Combine(AppContext.BaseDirectory, "Assets", "index.html");
         var template = await File.ReadAllTextAsync(path);
@@ -345,8 +433,10 @@ public sealed class MediaManager
             var typeName = type.ToString().ToUpper();
             var entry = $"[BODY{typeName}]";
             var countEntry = $"[COUNT{typeName}]";
+            var infoEntry = $"[INFOCOUNT{typeName}]";
             template = template
                 .Replace(entry, CreateBody(type))
+                .Replace(infoEntry, CreateInfoCount(type))
                 .Replace(countEntry, type switch
                 {
                     MediaType.Comic => Comics.Count.ToString("N0"),
@@ -361,7 +451,37 @@ public sealed class MediaManager
         template = template.Replace("[UPDATE]", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 
         // Save the template
-        await File.WriteAllTextAsync(Path.Combine(folder, "index.html"), template);
+        var filepath = Path.Combine(folder, "index.html");
+        await File.WriteAllTextAsync(filepath, template);
+
+        // Copy the logo
+        var logoPath = Path.Combine(AppContext.BaseDirectory, "Assets", "logo.png");
+        if (!File.Exists(logoPath))
+            return filepath;
+
+        File.Copy(logoPath, Path.Combine(folder, "logo.png"), true);
+
+        return filepath;
+
+        string CreateInfoCount(MediaType type)
+        {
+            var count = type switch
+            {
+                MediaType.Comic => Comics.Count,
+                MediaType.Book => Books.Count,
+                MediaType.Movie => Movies.Count,
+                MediaType.Music => Music.Count,
+                _ => 0
+            };
+
+            return type != MediaType.Music
+                ? count <= 1 
+                    ? $"{count} {type}" 
+                    : $"{count:N0} {type}s"
+                : count <= 1
+                    ? $"{count} CD"
+                    : $"{count:N0} CDs";
+        }
     }
 
     /// <summary>
@@ -399,7 +519,8 @@ public sealed class MediaManager
                             $"""
                              <tr>
                                  <td>{count++}</td>
-                                 <td>{entry.Title}</td>
+                                 <td>{CreateTitle(entry)}</td>
+                                 <td>{entry.Keywords}</td>
                                  <td>{entry.MediumType}</td>
                                  <td>{entry.Distributor}</td>
                                  <td>{entry.CreatedDateTime:yyyy-MM-dd HH:mm:ss}</td>
@@ -443,7 +564,8 @@ public sealed class MediaManager
                     $"""
                      <tr>
                          <td>{count++}</td>
-                         <td>{entry.Title}</td>
+                         <td>{CreateTitle(entry)}</td>
+                         <td>{entry.Keywords}</td>
                          <td>{entry.CreatedDateTime:yyyy-MM-dd HH:mm:ss}</td>
                          <td>{entry.ModifiedDateTime:yyyy-MM-dd HH:mm:ss}</td>
                      </tr>
@@ -451,6 +573,13 @@ public sealed class MediaManager
 
                 sb.AppendLine(tmpContent);
             }
+        }
+
+        string CreateTitle(BaseDbModel entry)
+        {
+            return string.IsNullOrWhiteSpace(entry.Link)
+                ? entry.Title
+                : $"<a href='{entry.Link}' alt='{entry.Title}' target='_blank'>{entry.Title}</a>";
         }
     }
     #endregion

@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>MediaLibIcon.ico</ApplicationIcon>
-    <Version>24.107.0.1312</Version>
-    <FileVersion>24.107.0.1312</FileVersion>
-    <AssemblyVersion>24.107.0.1312</AssemblyVersion>
+    <Version>24.117.0.1209</Version>
+    <FileVersion>24.117.0.1209</FileVersion>
+    <AssemblyVersion>24.117.0.1209</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="AssemblyInfo.cs" />
@@ -19,6 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="FluentFTP" Version="50.1.0" />
     <PackageReference Include="MahApps.Metro" Version="2.4.10" />
     <PackageReference Include="MahApps.Metro.IconPacks" Version="4.11.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.3" />
@@ -27,6 +28,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Update="Assets\index.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\logo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="CustomColor.txt">

@@ -1,12 +1,13 @@
-﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
+﻿using ControlzEx.Theming;
+using MediaLib.Common.Enums;
 using Serilog;
 using Serilog.Events;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Media;
-using ControlzEx.Theming;
 
 namespace MediaLib.Common;
 
@@ -185,6 +186,23 @@ internal static class Helper
     public static string ToHex(this Color color)
     {
         return $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
+    }
+
+    /// <summary>
+    /// Converts the <see cref="MediaType"/> into a <see cref="KeywordType"/>
+    /// </summary>
+    /// <param name="mediaType">The desired media type</param>
+    /// <returns>The keyword type</returns>
+    public static KeywordType ToKeywordType(this MediaType mediaType)
+    {
+        return mediaType switch
+        {
+            MediaType.Comic => KeywordType.Comic,
+            MediaType.Book => KeywordType.Book,
+            MediaType.Movie => KeywordType.Movie,
+            MediaType.Music => KeywordType.Music,
+            _ => throw new NotSupportedException($"The specified type '{mediaType}' is not supported")
+        };
     }
     #endregion
 }
